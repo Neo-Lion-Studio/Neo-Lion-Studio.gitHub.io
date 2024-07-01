@@ -1,0 +1,228 @@
+<!DOCTYPE html> 
+<html lang="zh"> 
+<head> 
+	<meta charset="UTF-8"> 
+	<title>静态表格并列展示</title> 
+	<style> 
+		table, select, label, button {
+			font-family: '一只喵的碎碎念';		
+			font-size: 10pt; /* 您希望设置的具体字体大小 */
+		}
+		table, th, td { 
+			border: 1px solid black; 
+			border-collapse: collapse; 
+		} 
+		th, td { 
+			padding: 10px; 
+			text-align: left; 
+			min-width: 120px; /* 适应大约五个汉字宽度 */ 
+		} 
+		td { /* 控制文本显示，根据需求调整 */ 
+			white-space: nowrap; 
+			overflow: hidden; 
+			text-overflow: ellipsis; 
+			min-width: 120px; /* 与th保持一致的最小宽度 */ 
+		} 
+		.tables-container { 
+			display: flex; /* 使用Flex布局 */ 
+			flex-direction: row; 
+			align-items: stretch; /* 让表格充满容器宽度 */ 
+		} 
+		.visually-larger {
+			transform: scale(1.1); /* 这里的1.5是放大比例，可以根据需要调整 */
+			transform-origin: 1% center;
+		}
+		table { 
+			width: 100%; /* 使表格宽度适应容器 */ 
+			margin-bottom: 0px; /* 底部外边距，用于分隔表格与按钮 */ 
+		} 
+		h2 { 
+			text-align: left; /* 表格标题居中 */ 
+			margin-bottom: 10px; /* 下方外边距，与表格拉开距离 */ 
+		} 
+		button { 
+			width: 100%; 
+			padding: 10px; /* 可根据需要调整按钮内边距 */ 
+		}
+		.time-prem-1 {
+			color: #f79646;
+		}
+		.time-prem-others {
+			color: #00b0f0;
+		}
+		.custom-font-table, 
+		.custom-font-table th, 
+		.custom-font-table td {
+			font-family: '一只喵的碎碎念'; /* 示例：更换字体家族 */
+			font-size: 10pt; /* 示例：调整字体大小 */
+		}
+		.initial-view td,
+		.initial-view th {
+			font-size: 10pt !important; /* 使用!important确保覆盖其他字体大小设置 */
+		}
+	</style>
+	
+	<div id="dropdownTemplate" style="display:none;">
+	<select>
+		<option value="">请选择</option>
+		<option value="♈">♈白羊座</option>
+		<option value="♉">♉金牛座</option>
+		<option value="♊">♊双子座</option>
+		<option value="♋">♋巨蟹座</option>
+		<option value="♌">♌狮子座</option>
+		<option value="♍">♍处女座</option>
+		<option value="♎">♎天秤座</option>
+		<option value="♏">♏天蝎座</option>
+		<option value="♐">♐射手座</option>
+		<option value="♑">♑摩羯座</option>
+		<option value="♒">♒水瓶座</option>		
+		<option value="♓">♓双鱼座</option>
+	</select>
+	</div>
+</head> 
+<body> 
+	<h1>欢迎使用小工具</h1>	
+	<script src="functions.js"></script>
+	<label for="dropdownSelect">请选择权值（默认24）：</label>
+	<select id="dropdownSelect" onchange="submitSelectedValue()">
+		<option value="24" selected>24</option>
+		<option value="730">730</option>
+		<option value="8766">8766</option>
+	</select>
+	<button onclick="submitSelectedValue()" style="width: 120px; height: 40px;">确认选择</button>
+	<label for="numberInput">请输入数字（默认30）：</label>
+	<input type="number" id="numberInput" value="30">
+	<button onclick="submitNumber()" style="width: 120px; height: 40px;";>提交</button>
+	<h2>请录入第一张盘</h2>	
+	<label for="dateTimeInput">请输入日期与时间（24小时制）：</label>
+	<input type="datetime-local" id="dateTimeInput" value="" onchange="onDateTimeInputChange()">
+	<button id="confirmBtn" style="width: 120px; height: 40px;">确认</button>
+	<label for="tablenameSelect">请选择（默认感受盘）：</label>
+	<select id="tablenameSelect" onchange="tablenameSelectValue()">
+		<option value="1" selected>感受盘</option>
+		<option value="0">事实盘</option>
+	</select>
+	<button onclick="tablenameSelectValue()" style="width: 120px; height: 40px;">确认选择</button>
+	<div class="tables-container"> 
+		<table id="dataTable"> 
+			<thead> 
+				<tr> 
+					<th>宫位</th> 
+					<th>宫首星座</th> 
+					<th>宫首度</th> 
+					<th>宫首分</th> 
+					<th>行星</th> 
+					<th>星座</th> 
+					<th>度</th> 
+					<th>分</th> 
+				</tr> 
+			</thead> 
+			<tbody id="tableBody"> 
+			<!-- 行将由JavaScript动态生成 --> 
+			</tbody> 
+		</table> 
+	</div> 
+	<!-- 功能按钮 -->
+	<button onclick="downloadCSV()" style="width: 100%;">下载表格</button>	
+	<div style="position:relative;width:100%;height:40px;">
+    <input type="file" id="csvFile" accept=".csv" onchange="uploadCSV(event)" style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;">
+    <label for="csvFile" style="position:absolute;top:0;left:0;width:100%;height:100%;background-color:#9E9E9E;color:white;font-size:12px;line-height:40px;text-align:center;cursor:pointer;">选择文件</label>
+	</div>
+
+	<div id="summaryContainer"></div>
+	<div id="summaryContainer2"></div>
+	
+	<h2>请录入第二张盘</h2>	
+	<label for="dateTimeInput2">请输入日期与时间（24小时制）：</label>
+	<input type="datetime-local" id="dateTimeInput2" value="" onchange="onDateTimeInputChange2()">
+	<button id="confirmBtn" style="width: 120px; height: 40px;">确认</button>
+	<label for="tablenameSelect2">请选择（默认事实盘）：</label>
+	<select id="tablenameSelect2" onchange="tablenameSelectValue2()">
+		<option value="1">感受盘</option>
+		<option value="0" selected>事实盘</option>
+	</select>
+	<button onclick="tablenameSelectValue2()" style="width: 120px; height: 40px;">确认选择</button>
+	<div class="tables-container"> 
+		<table id="dataTable3"> 
+			<thead> 
+				<tr> 
+					<th>宫位</th> 
+					<th>宫首星座</th> 
+					<th>宫首度</th> 
+					<th>宫首分</th> 
+					<th>行星</th> 
+					<th>星座</th> 
+					<th>度</th> 
+					<th>分</th> 
+				</tr> 
+			</thead> 
+			<tbody id="tableBody3"> 
+			<!-- 行将由JavaScript动态生成 --> 
+			</tbody> 
+		</table> 
+	</div> 
+	<!-- 功能按钮 -->
+	<button onclick="downloadCSV2()" style="width: 100%;">下载表格</button>	
+	<div style="position:relative;width:100%;height:40px;">
+    <input type="file" id="csvFile2" accept=".csv" onchange="uploadCSV2(event)" style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;">
+    <label for="csvFile2" style="position:absolute;top:0;left:0;width:100%;height:100%;background-color:#9E9E9E;color:white;font-size:12px;line-height:40px;text-align:center;cursor:pointer;">选择文件</label>
+	</div>
+
+	<div id="summaryContainer3"></div>
+	<div id="summaryContainer4"></div>
+	
+	<button onclick="submitData()" style="width: 100%;">提交数据</button>
+	
+	<div class="tables-container">
+		<table id="resultsTable" class="styled-table custom-font-table">
+		    <tr>
+				<td style="width: 5px;"></td>
+				<td style="width: 5px;"></td>
+				<td></td>
+			</tr>
+		</table>
+		<table id="resultsTable2" class="styled-table custom-font-table">
+			<tr>
+				<td style="width: 5px;"></td>
+				<td style="width: 5px;"></td>
+				<td></td>
+			</tr>
+		</table>
+	</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('confirmBtn').addEventListener('click', function() {
+            var dateTimeValue = document.getElementById('dateTimeInput').value;
+            if (dateTimeValue) {
+                localStorage.setItem('submittedDateTime', dateTimeValue);
+                console.log("提交的日期与时间为: " + dateTimeValue);
+            } else {
+                alert('请选择日期与时间！');
+            }
+        });
+        window.onload = function() {
+            var savedDateTime = localStorage.getItem('submittedDateTime');
+            if (savedDateTime) {
+                console.log("上次提交的日期与时间为: " + savedDateTime);
+            }
+        };
+    });
+
+    let uploadedData = [];
+	let turns = 30;	
+	let WEIGHT_FOR_T3_0 = 24;
+	let thefirsttable = 1;
+	let thefirsttable2 = 0;
+    document.getElementById('csvFile').addEventListener('change', uploadCSV);
+
+	const zodiacOrder = ['♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏', '♐', '♑', '♒', '♓'];
+	var starBaseDataArray = [] ;
+	var HousedeltaArray = [];
+	var degreeDifferencesArray = [];
+	let ContrastResult;
+	
+	addInitialRows();
+	addInitialRows2();
+</script>
+</body> 
+</html>
